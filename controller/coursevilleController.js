@@ -3,6 +3,7 @@ dotenv.config();
 const https = require('https');
 const url = require('url');
 const querystring = require('querystring');
+const coursevilleUtils = require('../utils/coursevilleUtils');
 
 const redirect_uri = `http://${process.env.backendIPAddress}/courseville/access_token`;
 const authorization_url = `https://www.mycourseville.com/api/oauth/authorize?response_type=code&client_id=${process.env.client_id}&redirect_uri=${redirect_uri}`;
@@ -50,7 +51,6 @@ exports.accessToken = (req, res) => {
         tokenRes.on('end', () => {
           const token = JSON.parse(tokenData);
           req.session.token = token;
-          console.log(req.session);
           if (token) {
             res.writeHead(302, {
               Location: `http://${process.env.frontendIPAddress}/`,
@@ -99,13 +99,32 @@ exports.getProfileInformation = (req, res) => {
     });
     profileReq.end();
   } catch (error) {
-    console.log(error);
     console.log('Please logout, then login again.');
+  }
+};
+
+exports.getCourses = async (req, res) => {
+  try {
+    const courses = await coursevilleUtils.getCourses(req);
+    res.send(courses);
+    res.end();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.getAssignments = async (req, res) => {
+  try {
+    const assignments = await coursevilleUtils.getAssignments(req);
+    res.send(assignments);
+    res.end();
+  } catch (error) {
+    console.log(error);
   }
 };
 
 exports.logout = (req, res) => {
   req.session.destroy();
-  res.redirect(`http://${process.env.frontendIPAddress}/login.html`);
+  res.redirect(`http://${process.env.frontendIPAddress}/`);
   res.end();
 };
