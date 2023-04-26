@@ -3,6 +3,7 @@ dotenv.config();
 const https = require("https");
 const url = require("url");
 const querystring = require("querystring");
+const coursevilleUtils = require("../utils/coursevilleUtils");
 
 const redirect_uri = `http://${process.env.backendIPAddress}/courseville/access_token`;
 const authorization_url = `https://www.mycourseville.com/api/oauth/authorize?response_type=code&client_id=${process.env.client_id}&redirect_uri=${redirect_uri}`;
@@ -109,10 +110,10 @@ exports.getCourses = async (req, res) => {
         Authorization: `Bearer ${req.session.token.access_token}`,
       },
     };
-    const cv_cids = await requestCourses(options);
+    const cv_cids = await coursevilleUtils.requestCourses(options);
     const courses_with_info = await Promise.all(cv_cids.map(async cv_cid => {
-      let info = await requestCourseInfo(cv_cid, options);
-      let schedule = await requestCourseSchedule(cv_cid, options);
+      let info = await coursevilleUtils.requestCourseInfo(cv_cid, options);
+      let schedule = await coursevilleUtils.requestCourseSchedule(cv_cid, options);
       let schedule_time = schedule.map(e => {
         return {
           start_time: e.start_epoch,
@@ -143,10 +144,10 @@ exports.getAssignments = async (req, res) => {
         Authorization: `Bearer ${req.session.token.access_token}`,
       },
     };
-    const cv_cids = await requestCourses(options);
+    const cv_cids = await coursevilleUtils.requestCourses(options);
     let assignments_ids = [];
     const req_assignments = await Promise.all(cv_cids.map(async cv_cid => {
-      let assignments = await requestAssignments(cv_cid, options);
+      let assignments = await coursevilleUtils.requestAssignments(cv_cid, options);
       let promises = assignments.map((e) => {
         assignments_ids.push({
           cv_cid: cv_cid,
@@ -156,7 +157,7 @@ exports.getAssignments = async (req, res) => {
       await Promise.all(promises);
     }));
     let promises = assignments_ids.map(async (e) => {
-      const assignment = await requestAssignmentInfo(e.itemid, options);
+      const assignment = await coursevilleUtils.requestAssignmentInfo(e.itemid, options);
       return {
         itemid: e.itemid,
         title: assignment.title,
@@ -176,122 +177,4 @@ exports.logout = (req, res) => {
   req.session.destroy();
   res.redirect(`http://${process.env.frontendIPAddress}/`);
   res.end();
-};
-
-
-function requestCourses(options) {
-  return new Promise((resolve, reject) => {
-    const coursesReq = https.request(
-      "https://www.mycourseville.com/api/v1/public/get/user/courses",
-      options,
-      (coursesRes) => {
-        let coursesData = "";
-        coursesRes.on("data", (chunk) => {
-          coursesData += chunk;
-        });
-        coursesRes.on("end", () => {
-          const courses = JSON.parse(coursesData).data.student;
-          const cv_cids = courses.map(e => e.cv_cid);
-          resolve(cv_cids);
-        });
-      }
-    );
-    coursesReq.on("error", (err) => {
-      reject(err);
-    });
-    coursesReq.end();
-  });
-};
-
-function requestCourseInfo(cv_cid, options) {
-  return new Promise((resolve, reject) => {
-    const courseReq = https.request(
-      `https://www.mycourseville.com/api/v1/public/get/course/info?cv_cid=${cv_cid}`,
-      options,
-      (courseRes) => {
-        let courseData = "";
-        courseRes.on("data", (chunk) => {
-          courseData += chunk;
-        });
-        courseRes.on("end", () => {
-          const courseInfo = JSON.parse(courseData).data;
-          resolve(courseInfo);
-        });
-      }
-    );
-    courseReq.on("error", (err) => {
-      console.error(err);
-    });
-    courseReq.end();
-  });
-}
-
-function requestCourseSchedule(cv_cid, options) {
-  return new Promise((resolve, reject) => {
-    const scheduleReq = https.request(
-      `https://www.mycourseville.com/api/v1/public/get/course/schedule?cv_cid=${cv_cid}`,
-      options,
-      (scheduleRes) => {
-        let scheduleData = "";
-        scheduleRes.on("data", (chunk) => {
-          scheduleData += chunk;
-        });
-        scheduleRes.on("end", () => {
-          const schedule = JSON.parse(scheduleData).data;
-          resolve(schedule);
-        });
-      }
-    );
-    scheduleReq.on("error", (err) => {
-      console.error(err);
-    });
-    scheduleReq.end();
-  });
-}
-
-function requestAssignments(cv_cid, options) {
-  return new Promise((resolve, reject) => {
-    const assignmentsReq = https.request(
-      `https://www.mycourseville.com/api/v1/public/get/course/assignments?cv_cid=${cv_cid}`,
-      options,
-      (assignmentsRes) => {
-        let assignmentsData = "";
-        assignmentsRes.on("data", (chunk) => {
-          assignmentsData += chunk;
-        });
-        assignmentsRes.on("end", () => {
-          const assignments = JSON.parse(assignmentsData).data;
-          const assignments_ids = assignments.map(e => e.itemid);
-          resolve(assignments_ids);
-        });
-      }
-    );
-    assignmentsReq.on("error", (err) => {
-      reject(err);
-    });
-    assignmentsReq.end();
-  });
-};
-
-function requestAssignmentInfo(itemid, options) {
-  return new Promise((resolve, reject) => {
-    const assignmentReq = https.request(
-      `https://www.mycourseville.com/api/v1/public/get/item/assignment?item_id=${itemid}`,
-      options,
-      (assignmentRes) => {
-        let assignmentData = "";
-        assignmentRes.on("data", (chunk) => {
-          assignmentData += chunk;
-        });
-        assignmentRes.on("end", () => {
-          const assignment = JSON.parse(assignmentData).data;
-          resolve(assignment);
-        });
-      }
-    );
-    assignmentReq.on("error", (err) => {
-      reject(err);
-    });
-    assignmentReq.end();
-  });
 };
