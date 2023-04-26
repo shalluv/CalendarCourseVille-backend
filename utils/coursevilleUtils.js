@@ -1,6 +1,66 @@
 const https = require("https");
 
 class CoursevilleUtils {
+    static async getCourses(req) {
+      const options = {
+        headers: {
+          Authorization: `Bearer ${req.session.token.access_token}`,
+        },
+      };
+      const cv_cids = await this.requestCourses(options);
+      const courses_with_info = await Promise.all(cv_cids.map(async cv_cid => {
+        let info = await this.requestCourseInfo(cv_cid, options);
+        let schedule = await this.requestCourseSchedule(cv_cid, options);
+        let schedule_time = schedule.map(e => {
+          return {
+            start_time: e.start_epoch,
+            end_time: e.end_epoch,
+          }
+        });
+        let link = `https://www.mycourseville.com/?q=courseville/course/${cv_cid}`;
+        return {
+          cv_cid: cv_cid,
+          course_name: info.title,
+          schedule: schedule_time,
+          link: link,
+        };
+      }));
+      return {
+        courses: courses_with_info,
+      };
+    }
+
+    static async getAssignments(req) {
+      const options = {
+        headers: {
+          Authorization: `Bearer ${req.session.token.access_token}`,
+        },
+      };
+      const cv_cids = await this.requestCourses(options);
+      let assignments_ids = [];
+      const req_assignments = await Promise.all(cv_cids.map(async cv_cid => {
+        let assignments = await this.requestAssignments(cv_cid, options);
+        let promises = assignments.map((e) => {
+          assignments_ids.push({
+            cv_cid: cv_cid,
+            itemid: e
+          });
+        });
+        await Promise.all(promises);
+      }));
+      let promises = assignments_ids.map(async (e) => {
+        const assignment = await this.requestAssignmentInfo(e.itemid, options);
+        return {
+          itemid: e.itemid,
+          title: assignment.title,
+          duetime: assignment.duetime,
+          link: `https://www.mycourseville.com/?q=courseville/worksheet/${e.cv_cid}/${e.itemid}`,
+        };
+      })
+      const assignments = await Promise.all(promises);
+      return assignments;
+    }
+
     static requestCourses(options) {
         return new Promise((resolve, reject) => {
           const coursesReq = https.request(

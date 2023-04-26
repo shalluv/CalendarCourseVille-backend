@@ -105,32 +105,8 @@ exports.getProfileInformation = (req, res) => {
 
 exports.getCourses = async (req, res) => {
   try {
-    const options = {
-      headers: {
-        Authorization: `Bearer ${req.session.token.access_token}`,
-      },
-    };
-    const cv_cids = await coursevilleUtils.requestCourses(options);
-    const courses_with_info = await Promise.all(cv_cids.map(async cv_cid => {
-      let info = await coursevilleUtils.requestCourseInfo(cv_cid, options);
-      let schedule = await coursevilleUtils.requestCourseSchedule(cv_cid, options);
-      let schedule_time = schedule.map(e => {
-        return {
-          start_time: e.start_epoch,
-          end_time: e.end_epoch,
-        }
-      });
-      let link = `https://www.mycourseville.com/?q=courseville/course/${cv_cid}`;
-      return {
-        cv_cid: cv_cid,
-        course_name: info.title,
-        schedule: schedule_time,
-        link: link,
-      };
-    }));
-    res.send({
-      courses: courses_with_info,
-    });
+    const courses = await coursevilleUtils.getCourses(req);
+    res.send(courses);
     res.end();
   } catch (error) {
     console.log(error);
@@ -139,33 +115,7 @@ exports.getCourses = async (req, res) => {
 
 exports.getAssignments = async (req, res) => {
   try {
-    const options = {
-      headers: {
-        Authorization: `Bearer ${req.session.token.access_token}`,
-      },
-    };
-    const cv_cids = await coursevilleUtils.requestCourses(options);
-    let assignments_ids = [];
-    const req_assignments = await Promise.all(cv_cids.map(async cv_cid => {
-      let assignments = await coursevilleUtils.requestAssignments(cv_cid, options);
-      let promises = assignments.map((e) => {
-        assignments_ids.push({
-          cv_cid: cv_cid,
-          itemid: e
-        });
-      });
-      await Promise.all(promises);
-    }));
-    let promises = assignments_ids.map(async (e) => {
-      const assignment = await coursevilleUtils.requestAssignmentInfo(e.itemid, options);
-      return {
-        itemid: e.itemid,
-        title: assignment.title,
-        duetime: assignment.duetime,
-        link: `https://www.mycourseville.com/?q=courseville/worksheet/${e.cv_cid}/${e.itemid}`,
-      };
-    })
-    const assignments = await Promise.all(promises);
+    const assignments = await coursevilleUtils.getAssignments(req);
     res.send(assignments)
     res.end()
   } catch (error) {
