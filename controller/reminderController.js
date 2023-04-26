@@ -1,12 +1,12 @@
-const dotenv = require("dotenv");
+const dotenv = require('dotenv');
 dotenv.config();
-const { v4: uuidv4 } = require("uuid");
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const { v4: uuidv4 } = require('uuid');
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const {
   PutCommand,
   DeleteCommand,
   ScanCommand,
-} = require("@aws-sdk/lib-dynamodb");
+} = require('@aws-sdk/lib-dynamodb');
 
 const docClient = new DynamoDBClient({ regions: process.env.AWS_REGION });
 
@@ -26,7 +26,11 @@ exports.getReminders = async (req, res) => {
 exports.addReminder = async (req, res) => {
   const reminder_id = uuidv4();
   const created_date = Date.now();
-  const reminder = { reminder_id: reminder_id, ...req.body, created_date: created_date };
+  const reminder = {
+    reminder_id: reminder_id,
+    ...req.body,
+    created_date: created_date,
+  };
 
   const params = {
     TableName: process.env.aws_reminders_table_name,
@@ -45,7 +49,7 @@ exports.deleteReminder = async (req, res) => {
   const reminder_id = req.params.reminder_id;
   const params = {
     TableName: process.env.aws_reminders_table_name,
-    Key: {reminder_id: reminder_id},
+    Key: { reminder_id: reminder_id },
   };
   try {
     const response = await docClient.send(new DeleteCommand(params));
