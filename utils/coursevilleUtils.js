@@ -40,6 +40,7 @@ class CoursevilleUtils {
       cv_cids.map(async (cv_cid) => {
         let info = await this.requestCourseInfo(cv_cid, options);
         let schedule = await this.requestCourseSchedule(cv_cid, options);
+        let online_meetings = await this.requestOnlineMeetings(cv_cid, options);
         let schedule_time = schedule.map((e) => {
           return {
             start_time: e.start_epoch,
@@ -51,6 +52,7 @@ class CoursevilleUtils {
           cv_cid: cv_cid,
           course_name: info.title,
           schedule: schedule_time,
+          online_meetings: online_meetings,
           link: link,
         };
       })
@@ -207,6 +209,36 @@ class CoursevilleUtils {
         reject(err);
       });
       assignmentReq.end();
+    });
+  }
+
+  static requestOnlineMeetings(cv_cid, options) {
+    return new Promise((resolve, reject) => {
+      const meetingsReq = https.request(
+        `https://www.mycourseville.com/api/v1/public/get/course/onlinemeetings?cv_cid=${cv_cid}`,
+        options,
+        (meetingsRes) => {
+          let meetingsData = '';
+          meetingsRes.on('data', (chunk) => {
+            meetingsData += chunk;
+          });
+          meetingsRes.on('end', () => {
+            const meetings = JSON.parse(meetingsData).data;
+            const meeting_links = meetings.map((meeting) => {
+              return {
+                start_epoch: meeting.start_epoch,
+                duration_minute: meeting.duration_minute,
+                link: meeting.json_property.zoom.creating_response.join_url,
+              }
+            });
+            resolve(meeting_links);
+          });
+        }
+      );
+      meetingsReq.on('error', (err) => {
+        reject(err);
+      });
+      meetingsReq.end();
     });
   }
 }
