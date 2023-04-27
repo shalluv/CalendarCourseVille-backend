@@ -71,7 +71,6 @@ exports.accessToken = (req, res) => {
   }
 };
 
-// Example: Send "GET" request to CV endpoint to get user profile information
 exports.getProfileInformation = (req, res) => {
   try {
     const profileOptions = {

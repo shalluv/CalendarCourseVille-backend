@@ -106,7 +106,7 @@ class CoursevilleUtils {
         }
       );
       courseReq.on('error', (err) => {
-        console.error(err);
+        reject(err);
       });
       courseReq.end();
     });
@@ -129,7 +129,7 @@ class CoursevilleUtils {
         }
       );
       scheduleReq.on('error', (err) => {
-        console.error(err);
+        reject(err);
       });
       scheduleReq.end();
     });
