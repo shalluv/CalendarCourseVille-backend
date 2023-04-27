@@ -7,12 +7,17 @@ const {
   DeleteCommand,
   ScanCommand,
 } = require('@aws-sdk/lib-dynamodb');
+const coursevilleUtils = require('../utils/coursevilleUtils');
 
 const docClient = new DynamoDBClient({ regions: process.env.AWS_REGION });
 
 exports.getReminders = async (req, res) => {
+  const profile = await coursevilleUtils.getProfileInformation(req);
   const params = {
     TableName: process.env.aws_reminders_table_name,
+    Key: {
+      user_id: profile.user.id,
+    },
   };
   try {
     const data = await docClient.send(new ScanCommand(params));
@@ -24,9 +29,11 @@ exports.getReminders = async (req, res) => {
 };
 
 exports.addReminder = async (req, res) => {
+  const profile = await coursevilleUtils.getProfileInformation(req);
   const reminder_id = uuidv4();
   const created_date = Date.now();
   const reminder = {
+    user_id: profile.user.id,
     reminder_id: reminder_id,
     ...req.body,
     created_date: created_date,
@@ -46,10 +53,14 @@ exports.addReminder = async (req, res) => {
 };
 
 exports.deleteReminder = async (req, res) => {
+  const profile = await coursevilleUtils.getProfileInformation(req);
   const reminder_id = req.params.reminder_id;
   const params = {
     TableName: process.env.aws_reminders_table_name,
-    Key: { reminder_id: reminder_id },
+    Key: { 
+      user_id: profile.user.id, 
+      reminder_id: reminder_id 
+    },
   };
   try {
     const response = await docClient.send(new DeleteCommand(params));
