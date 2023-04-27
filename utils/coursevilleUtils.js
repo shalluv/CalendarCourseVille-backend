@@ -1,16 +1,11 @@
 const https = require('https');
 
 class CoursevilleUtils {
-  static async getProfileInformation(req) {
+  static async getProfileInformation(options) {
     return new Promise((resolve, reject) => {
-      const profileOptions = {
-        headers: {
-          Authorization: `Bearer ${req.session.token.access_token}`,
-        },
-      };
       const profileReq = https.request(
         'https://www.mycourseville.com/api/v1/public/users/me',
-        profileOptions,
+        options,
         (profileRes) => {
           let profileData = '';
           profileRes.on('data', (chunk) => {
@@ -29,17 +24,13 @@ class CoursevilleUtils {
     });
   }
 
-  static async getCourses(req) {
-    const options = {
-      headers: {
-        Authorization: `Bearer ${req.session.token.access_token}`,
-      },
-    };
+  static async getCourses(options) {
     const cv_cids = await this.requestCourses(options);
     const courses_with_info = await Promise.all(
       cv_cids.map(async (cv_cid) => {
         let info = await this.requestCourseInfo(cv_cid, options);
         let schedule = await this.requestCourseSchedule(cv_cid, options);
+        let online_meetings = await this.requestOnlineMeetings(cv_cid, options);
         let schedule_time = schedule.map((e) => {
           return {
             start_time: e.start_epoch,
@@ -51,6 +42,7 @@ class CoursevilleUtils {
           cv_cid: cv_cid,
           course_name: info.title,
           schedule: schedule_time,
+          online_meetings: online_meetings,
           link: link,
         };
       })
@@ -60,12 +52,7 @@ class CoursevilleUtils {
     };
   }
 
-  static async getAssignments(req) {
-    const options = {
-      headers: {
-        Authorization: `Bearer ${req.session.token.access_token}`,
-      },
-    };
+  static async getAssignments(options) {
     const cv_cids = await this.requestCourses(options);
     let assignments_ids = [];
     const req_assignments = await Promise.all(
@@ -207,6 +194,36 @@ class CoursevilleUtils {
         reject(err);
       });
       assignmentReq.end();
+    });
+  }
+
+  static requestOnlineMeetings(cv_cid, options) {
+    return new Promise((resolve, reject) => {
+      const meetingsReq = https.request(
+        `https://www.mycourseville.com/api/v1/public/get/course/onlinemeetings?cv_cid=${cv_cid}`,
+        options,
+        (meetingsRes) => {
+          let meetingsData = '';
+          meetingsRes.on('data', (chunk) => {
+            meetingsData += chunk;
+          });
+          meetingsRes.on('end', () => {
+            const meetings = JSON.parse(meetingsData).data;
+            const meeting_links = meetings.map((meeting) => {
+              return {
+                start_epoch: meeting.start_epoch,
+                duration_minute: meeting.duration_minute,
+                link: meeting.json_property.zoom.creating_response.join_url,
+              };
+            });
+            resolve(meeting_links);
+          });
+        }
+      );
+      meetingsReq.on('error', (err) => {
+        reject(err);
+      });
+      meetingsReq.end();
     });
   }
 }
