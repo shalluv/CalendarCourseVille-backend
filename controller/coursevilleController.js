@@ -99,7 +99,9 @@ exports.getProfileInformation = (req, res) => {
     });
     profileReq.end();
   } catch (error) {
-    console.log('Please logout, then login again.');
+    console.error(error);
+    res.send({ error: error });
+    res.end();
   }
 };
 
