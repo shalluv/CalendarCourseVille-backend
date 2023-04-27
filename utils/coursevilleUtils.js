@@ -1,6 +1,34 @@
 const https = require('https');
 
 class CoursevilleUtils {
+  static async getProfileInformation(req) {
+    return new Promise((resolve, reject) => {
+      const profileOptions = {
+        headers: {
+          Authorization: `Bearer ${req.session.token.access_token}`,
+        },
+      };
+      const profileReq = https.request(
+        'https://www.mycourseville.com/api/v1/public/users/me',
+        profileOptions,
+        (profileRes) => {
+          let profileData = '';
+          profileRes.on('data', (chunk) => {
+            profileData += chunk;
+          });
+          profileRes.on('end', () => {
+            const profile = JSON.parse(profileData);
+            resolve(profile);
+          });
+        }
+      );
+      profileReq.on('error', (err) => {
+        reject(err);
+      });
+      profileReq.end();
+    });
+  }
+
   static async getCourses(req) {
     const options = {
       headers: {
