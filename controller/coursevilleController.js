@@ -71,33 +71,11 @@ exports.accessToken = (req, res) => {
   }
 };
 
-// Example: Send "GET" request to CV endpoint to get user profile information
-exports.getProfileInformation = (req, res) => {
+exports.getProfileInformation = async (req, res) => {
   try {
-    const profileOptions = {
-      headers: {
-        Authorization: `Bearer ${req.session.token.access_token}`,
-      },
-    };
-    const profileReq = https.request(
-      'https://www.mycourseville.com/api/v1/public/users/me',
-      profileOptions,
-      (profileRes) => {
-        let profileData = '';
-        profileRes.on('data', (chunk) => {
-          profileData += chunk;
-        });
-        profileRes.on('end', () => {
-          const profile = JSON.parse(profileData);
-          res.send(profile);
-          res.end();
-        });
-      }
-    );
-    profileReq.on('error', (err) => {
-      console.error(err);
-    });
-    profileReq.end();
+    const profile = await coursevilleUtils.getProfileInformation(req);
+    res.send(profile);
+    res.end();
   } catch (error) {
     console.error(error);
     res.send({ error: error });
