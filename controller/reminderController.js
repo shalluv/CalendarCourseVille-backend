@@ -12,7 +12,12 @@ const coursevilleUtils = require('../utils/coursevilleUtils');
 const docClient = new DynamoDBClient({ regions: process.env.AWS_REGION });
 
 exports.getReminders = async (req, res) => {
-  const profile = await coursevilleUtils.getProfileInformation(req);
+  const options = {
+    headers: {
+      Authorization: `Bearer ${req.session.token.access_token}`,
+    },
+  };
+  const profile = await coursevilleUtils.getProfileInformation(options);
   const params = {
     TableName: process.env.aws_reminders_table_name,
     Key: {
@@ -29,7 +34,12 @@ exports.getReminders = async (req, res) => {
 };
 
 exports.addReminder = async (req, res) => {
-  const profile = await coursevilleUtils.getProfileInformation(req);
+  const options = {
+    headers: {
+      Authorization: `Bearer ${req.session.token.access_token}`,
+    },
+  };
+  const profile = await coursevilleUtils.getProfileInformation(options);
   const reminder_id = uuidv4();
   const created_date = Date.now();
   const reminder = {
@@ -53,7 +63,12 @@ exports.addReminder = async (req, res) => {
 };
 
 exports.deleteReminder = async (req, res) => {
-  const profile = await coursevilleUtils.getProfileInformation(req);
+  const options = {
+    headers: {
+      Authorization: `Bearer ${req.session.token.access_token}`,
+    },
+  };
+  const profile = await coursevilleUtils.getProfileInformation(options);
   const reminder_id = req.params.reminder_id;
   const params = {
     TableName: process.env.aws_reminders_table_name,

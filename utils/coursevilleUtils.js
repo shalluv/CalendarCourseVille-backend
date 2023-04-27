@@ -1,16 +1,11 @@
 const https = require('https');
 
 class CoursevilleUtils {
-  static async getProfileInformation(req) {
+  static async getProfileInformation(options) {
     return new Promise((resolve, reject) => {
-      const profileOptions = {
-        headers: {
-          Authorization: `Bearer ${req.session.token.access_token}`,
-        },
-      };
       const profileReq = https.request(
         'https://www.mycourseville.com/api/v1/public/users/me',
-        profileOptions,
+        options,
         (profileRes) => {
           let profileData = '';
           profileRes.on('data', (chunk) => {
@@ -29,12 +24,7 @@ class CoursevilleUtils {
     });
   }
 
-  static async getCourses(req) {
-    const options = {
-      headers: {
-        Authorization: `Bearer ${req.session.token.access_token}`,
-      },
-    };
+  static async getCourses(options) {
     const cv_cids = await this.requestCourses(options);
     const courses_with_info = await Promise.all(
       cv_cids.map(async (cv_cid) => {
@@ -62,12 +52,7 @@ class CoursevilleUtils {
     };
   }
 
-  static async getAssignments(req) {
-    const options = {
-      headers: {
-        Authorization: `Bearer ${req.session.token.access_token}`,
-      },
-    };
+  static async getAssignments(options) {
     const cv_cids = await this.requestCourses(options);
     let assignments_ids = [];
     const req_assignments = await Promise.all(

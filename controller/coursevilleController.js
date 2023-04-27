@@ -73,7 +73,12 @@ exports.accessToken = (req, res) => {
 
 exports.getProfileInformation = async (req, res) => {
   try {
-    const profile = await coursevilleUtils.getProfileInformation(req);
+    const options = {
+      headers: {
+        Authorization: `Bearer ${req.session.token.access_token}`,
+      },
+    };
+    const profile = await coursevilleUtils.getProfileInformation(options);
     res.send(profile);
     res.end();
   } catch (error) {
@@ -85,7 +90,12 @@ exports.getProfileInformation = async (req, res) => {
 
 exports.getCourses = async (req, res) => {
   try {
-    const courses = await coursevilleUtils.getCourses(req);
+    const options = {
+      headers: {
+        Authorization: `Bearer ${req.session.token.access_token}`,
+      },
+    };
+    const courses = await coursevilleUtils.getCourses(options);
     res.send(courses);
     res.end();
   } catch (error) {
@@ -95,7 +105,12 @@ exports.getCourses = async (req, res) => {
 
 exports.getAssignments = async (req, res) => {
   try {
-    const assignments = await coursevilleUtils.getAssignments(req);
+    const options = {
+      headers: {
+        Authorization: `Bearer ${req.session.token.access_token}`,
+      },
+    };
+    const assignments = await coursevilleUtils.getAssignments(options);
     res.send(assignments);
     res.end();
   } catch (error) {

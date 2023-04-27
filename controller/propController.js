@@ -8,9 +8,14 @@ const coursevilleUtils = require('../utils/coursevilleUtils');
 
 exports.getProps = async (req, res) => {
   try {
-    const profile = await coursevilleUtils.getProfileInformation(req);
-    const courses = await coursevilleUtils.getCourses(req);
-    const assignments = await coursevilleUtils.getAssignments(req);
+    const options = {
+      headers: {
+        Authorization: `Bearer ${req.session.token.access_token}`,
+      },
+    };
+    const profile = await coursevilleUtils.getProfileInformation(options);
+    const courses = await coursevilleUtils.getCourses(options);
+    const assignments = await coursevilleUtils.getAssignments(options);
     const params = {
       TableName: process.env.aws_reminders_table_name,
       Key: {
