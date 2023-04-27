@@ -214,7 +214,7 @@ class CoursevilleUtils {
                 start_epoch: meeting.start_epoch,
                 duration_minute: meeting.duration_minute,
                 link: meeting.json_property.zoom.creating_response.join_url,
-              }
+              };
             });
             resolve(meeting_links);
           });
