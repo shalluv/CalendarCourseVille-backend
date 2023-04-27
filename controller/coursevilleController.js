@@ -99,7 +99,9 @@ exports.getProfileInformation = (req, res) => {
     });
     profileReq.end();
   } catch (error) {
-    console.log('Please logout, then login again.');
+    console.error(error);
+    res.send({ error: error });
+    res.end();
   }
 };
 
@@ -109,7 +111,7 @@ exports.getCourses = async (req, res) => {
     res.send(courses);
     res.end();
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
@@ -119,7 +121,7 @@ exports.getAssignments = async (req, res) => {
     res.send(assignments);
     res.end();
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 

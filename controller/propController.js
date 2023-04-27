@@ -26,6 +26,6 @@ exports.getProps = async (req, res) => {
     });
     res.end();
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
