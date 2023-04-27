@@ -57,9 +57,9 @@ exports.deleteReminder = async (req, res) => {
   const reminder_id = req.params.reminder_id;
   const params = {
     TableName: process.env.aws_reminders_table_name,
-    Key: { 
-      user_id: profile.user.id, 
-      reminder_id: reminder_id 
+    Key: {
+      user_id: profile.user.id,
+      reminder_id: reminder_id,
     },
   };
   try {

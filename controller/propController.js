@@ -15,7 +15,7 @@ exports.getProps = async (req, res) => {
       TableName: process.env.aws_reminders_table_name,
       Key: {
         user_id: profile.user.id,
-      }
+      },
     };
     const reminders = await docClient.send(new ScanCommand(params));
     res.send({
