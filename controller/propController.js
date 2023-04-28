@@ -18,8 +18,9 @@ exports.getProps = async (req, res) => {
     const assignments = await coursevilleUtils.getAssignments(options);
     const params = {
       TableName: process.env.aws_reminders_table_name,
-      Key: {
-        user_id: profile.user.id,
+      FilterExpression: 'user_id = :id',
+      ExpressionAttributeValues: {
+        ':id': profile.user.id,
       },
     };
     const reminders = await docClient.send(new ScanCommand(params));
