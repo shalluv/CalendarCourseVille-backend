@@ -31,5 +31,7 @@ exports.getProps = async (req, res) => {
     res.end();
   } catch (error) {
     console.error(error);
+    res.send({ error: error });
+    res.end();
   }
 };
