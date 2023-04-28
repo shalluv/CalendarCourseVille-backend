@@ -20,13 +20,14 @@ exports.getReminders = async (req, res) => {
   const profile = await coursevilleUtils.getProfileInformation(options);
   const params = {
     TableName: process.env.aws_reminders_table_name,
-    Key: {
-      user_id: profile.user.id,
+    FilterExpression: 'user_id = :id',
+    ExpressionAttributeValues: {
+      ':id': profile.user.id,
     },
   };
   try {
-    const data = await docClient.send(new ScanCommand(params));
-    res.send(data.Items);
+    const reminders = await docClient.send(new ScanCommand(params));
+    res.send(reminders.Items);
   } catch (err) {
     console.error(err);
     res.status(500).send(err);
