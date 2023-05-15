@@ -1,5 +1,5 @@
 {
-  "name": "backend",
+  "name": "calendar-courseville-backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,7 +11,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.289.0",
     "@aws-sdk/lib-dynamodb": "^3.289.0",
